@@ -1,0 +1,150 @@
+.keyboard-container {
+    margin: 16px 0 24px;
+
+    background: #f8fafc;
+
+    border: 2px solid #cbd5e1;
+
+    border-radius: 14px;
+
+    padding: 16px 12px;
+}
+
+
+.abc-keyboard-inner {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+
+.keyboard-row {
+    display: flex;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    flex-wrap: nowrap;
+}
+
+
+.key-btn {
+    flex: 1;
+
+    min-width: 44px;
+
+    min-height: 52px;
+
+    font-size: 1.35rem;
+
+    font-weight: 700;
+
+    color: #0f172a;
+
+    background: #ffffff;
+
+    border: 2px solid #94a3b8;
+
+    border-radius: 10px;
+
+    cursor: pointer;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    user-select: none;
+
+    touch-action: manipulation;
+
+    transition:
+        background 0.1s ease,
+        transform 0.05s ease;
+}
+
+
+.key-btn:hover {
+    background: #e2e8f0;
+
+    border-color: #64748b;
+}
+
+
+.key-btn:active {
+    transform: scale(0.96);
+
+    background: #cbd5e1;
+}
+
+
+.key-btn:focus-visible {
+    outline: 3px solid #0284c7;
+}
+
+
+/* Action buttons */
+.action-row {
+    margin-top: 4px;
+}
+
+
+.action-key {
+    flex: 2;
+
+    font-size: 1.1rem;
+}
+
+
+.space-key {
+    flex: 4;
+
+    background: #e0f2fe;
+
+    border-color: #38bdf8;
+
+    color: #0369a1;
+}
+
+
+.backspace-key {
+    background: #ffedd5;
+
+    border-color: #fb923c;
+
+    color: #9a3412;
+}
+
+
+.clear-key {
+    background: #fee2e2;
+
+    border-color: #f87171;
+
+    color: #991b1b;
+}
+
+
+/* Smaller screens */
+@media (max-width: 600px) {
+
+    .keyboard-row {
+        gap: 4px;
+    }
+
+    .key-btn {
+        min-width: 30px;
+
+        min-height: 48px;
+
+        font-size: 1.05rem;
+    }
+
+    .action-key {
+        font-size: 0.9rem;
+    }
+}

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>ADAPT — Task Assistant</title>
+
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/keyboard.css">
+</head>
+
+<body>
+
+    <!-- Screen reader announcements -->
+    <div
+        id="sr-announcer"
+        class="sr-only"
+        aria-live="polite"
+        aria-atomic="true">
+    </div>
+
+
+    <div class="adapt-app">
+
+        <!-- Header -->
+        <header class="app-header">
+
+            <h1 class="logo">ADAPT</h1>
+
+            <p class="tagline">
+                Accessibility-Focused Digital Task Assistant
+            </p>
+
+        </header>
+
+
+        <!-- Main content -->
+        <main class="task-card">
+
+            <label
+                for="task-input"
+                class="main-prompt">
+
+                What do you want to do?
+
+            </label>
+
+
+            <!-- Task input -->
+            <div class="input-container">
+
+                <textarea
+                    id="task-input"
+                    class="task-textarea"
+                    rows="3"
+                    placeholder="Type here, click Speak, or use the ABC Keyboard..."
+                    aria-describedby="status-message">
+                </textarea>
+
+            </div>
+
+
+            <!-- Status -->
+            <div
+                id="status-container"
+                class="status-container"
+                aria-live="polite">
+
+                <span
+                    id="status-badge"
+                    class="status-badge idle">
+
+                    <span
+                        class="status-icon"
+                        id="status-icon">
+                        ⚪
+                    </span>
+
+                    <span id="status-text">
+                        Mode: Keyboard
+                    </span>
+
+                </span>
+
+
+                <div
+                    id="audio-wave"
+                    class="audio-wave hidden"
+                    aria-hidden="true">
+
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+
+                </div>
+
+            </div>
+
+
+            <!-- Main controls -->
+            <div class="controls-row">
+
+                <button
+                    id="btn-speak"
+                    class="action-btn"
+                    type="button"
+                    aria-pressed="false">
+
+                    <span class="btn-icon">🎙️</span>
+                    <span class="btn-label">Speak</span>
+
+                </button>
+
+
+                <button
+                    id="btn-toggle-keyboard"
+                    class="action-btn"
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls="keyboard-container">
+
+                    <span class="btn-icon">⌨️</span>
+                    <span class="btn-label">ABC Keyboard</span>
+
+                </button>
+
+
+                <button
+                    id="btn-read-aloud"
+                    class="action-btn"
+                    type="button">
+
+                    <span class="btn-icon">🔊</span>
+                    <span class="btn-label">Read Aloud</span>
+
+                </button>
+
+            </div>
+
+
+            <!-- ABC keyboard -->
+            <section
+                id="keyboard-container"
+                class="keyboard-container hidden"
+                aria-label="On-Screen ABC Keyboard">
+            </section>
+
+
+            <!-- START -->
+            <div class="submit-row">
+
+                <button
+                    id="btn-start"
+                    class="btn-start"
+                    type="button">
+
+                    START
+
+                </button>
+
+            </div>
+
+
+            <!-- Error message -->
+            <div
+                id="error-message"
+                class="error-message hidden"
+                role="alert">
+            </div>
+
+
+            <!-- Contract preview -->
+            <section
+                class="contract-preview-card"
+                aria-label="Task Data Contract Output">
+
+                <div class="contract-header">
+
+                    <span class="contract-title">
+                        Contract Payload Preview (Member 2 Output)
+                    </span>
+
+                    <span class="contract-tag">
+                        getTaskInput()
+                    </span>
+
+                </div>
+
+
+                <pre
+                    id="payload-output"
+                    class="payload-output"><code>{
+    "input": "",
+    "input_mode": "keyboard"
+}</code></pre>
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+    <!-- JavaScript -->
+    <script
+        type="module"
+        src="./src/main.js">
+    </script>
+
+</body>
+
+</html>

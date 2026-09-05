@@ -1,0 +1,489 @@
+:root {
+    --bg-color: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #475569;
+    --primary-blue: #0284c7;
+    --primary-blue-dark: #0369a1;
+    --primary-focus: #0ea5e9;
+    --accent-green: #15803d;
+    --accent-red: #b91c1c;
+    --border-color: #cbd5e1;
+
+    --font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        sans-serif;
+}
+
+
+/* Basic reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+body {
+    font-family: var(--font-family);
+
+    background-color: var(--bg-color);
+
+    color: var(--text-main);
+
+    line-height: 1.5;
+
+    display: flex;
+
+    justify-content: center;
+
+    padding: 24px 16px;
+
+    min-height: 100vh;
+}
+
+
+/* Screen-reader-only content */
+.sr-only {
+    position: absolute;
+
+    width: 1px;
+    height: 1px;
+
+    padding: 0;
+    margin: -1px;
+
+    overflow: hidden;
+
+    clip: rect(0, 0, 0, 0);
+
+    border: 0;
+}
+
+
+.adapt-app {
+    width: 100%;
+    max-width: 760px;
+}
+
+
+/* Header */
+.app-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+
+.logo {
+    font-size: 2.75rem;
+
+    font-weight: 800;
+
+    letter-spacing: 2px;
+
+    color: #0369a1;
+}
+
+
+.tagline {
+    font-size: 1.15rem;
+
+    color: var(--text-muted);
+
+    margin-top: 4px;
+}
+
+
+/* Main card */
+.task-card {
+    background: var(--card-bg);
+
+    border: 2px solid var(--border-color);
+
+    border-radius: 16px;
+
+    padding: 32px 28px;
+
+    box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+
+/* Main question */
+.main-prompt {
+    display: block;
+
+    font-size: 1.65rem;
+
+    font-weight: 700;
+
+    margin-bottom: 16px;
+
+    color: var(--text-main);
+}
+
+
+/* Text input */
+.task-textarea {
+    width: 100%;
+
+    font-size: 1.25rem;
+
+    padding: 18px 20px;
+
+    border: 2px solid var(--border-color);
+
+    border-radius: 12px;
+
+    color: var(--text-main);
+
+    resize: vertical;
+
+    min-height: 120px;
+
+    font-family: inherit;
+}
+
+
+.task-textarea:focus {
+    outline: 3px solid var(--primary-focus);
+
+    border-color: var(--primary-blue);
+}
+
+
+/* Status */
+.status-container {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    margin: 16px 0;
+
+    min-height: 38px;
+}
+
+
+.status-badge {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    font-size: 1rem;
+
+    font-weight: 600;
+
+    padding: 6px 14px;
+
+    border-radius: 9999px;
+
+    border: 2px solid var(--border-color);
+
+    background: #f1f5f9;
+}
+
+
+.status-badge.listening {
+    background: #fee2e2;
+
+    border-color: #ef4444;
+
+    color: #991b1b;
+
+    animation: pulse-border 1.5s infinite;
+}
+
+
+.status-badge.speaking {
+    background: #e0f2fe;
+
+    border-color: #0284c7;
+
+    color: #075985;
+}
+
+
+/* Audio wave */
+.audio-wave {
+    display: flex;
+
+    align-items: center;
+
+    gap: 4px;
+
+    height: 24px;
+}
+
+
+.audio-wave span {
+    width: 4px;
+
+    height: 100%;
+
+    background-color: #ef4444;
+
+    border-radius: 4px;
+
+    animation:
+        sound-bars 1s infinite
+        ease-in-out alternate;
+}
+
+
+.audio-wave span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.audio-wave span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+.audio-wave span:nth-child(4) {
+    animation-delay: 0.6s;
+}
+
+.audio-wave span:nth-child(5) {
+    animation-delay: 0.8s;
+}
+
+
+@keyframes sound-bars {
+
+    0% {
+        height: 6px;
+    }
+
+    100% {
+        height: 24px;
+    }
+}
+
+
+@keyframes pulse-border {
+
+    0%,
+    100% {
+        box-shadow:
+            0 0 0 0 rgba(239, 68, 68, 0.4);
+    }
+
+    50% {
+        box-shadow:
+            0 0 0 8px rgba(239, 68, 68, 0);
+    }
+}
+
+
+/* Main buttons */
+.controls-row {
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fit, minmax(160px, 1fr));
+
+    gap: 12px;
+
+    margin-bottom: 20px;
+}
+
+
+.action-btn {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 10px;
+
+    padding: 14px 18px;
+
+    font-size: 1.15rem;
+
+    font-weight: 700;
+
+    border-radius: 12px;
+
+    border: 2px solid var(--border-color);
+
+    background: #ffffff;
+
+    color: var(--text-main);
+
+    cursor: pointer;
+
+    min-height: 54px;
+
+    transition: all 0.15s ease;
+}
+
+
+.action-btn:hover {
+    background: #f1f5f9;
+
+    border-color: #94a3b8;
+}
+
+
+.action-btn:focus-visible {
+    outline: 3px solid var(--primary-focus);
+}
+
+
+.action-btn.active {
+    background: #fee2e2;
+
+    border-color: #dc2626;
+
+    color: #991b1b;
+}
+
+
+/* START */
+.submit-row {
+    margin: 24px 0 16px;
+}
+
+
+.btn-start {
+    width: 100%;
+
+    padding: 18px;
+
+    font-size: 1.4rem;
+
+    font-weight: 800;
+
+    letter-spacing: 1px;
+
+    color: #ffffff;
+
+    background: var(--accent-green);
+
+    border: none;
+
+    border-radius: 12px;
+
+    cursor: pointer;
+
+    min-height: 60px;
+
+    transition:
+        background 0.15s ease;
+}
+
+
+.btn-start:hover {
+    background: #166534;
+}
+
+
+.btn-start:focus-visible {
+    outline: 4px solid #86efac;
+}
+
+
+/* Error */
+.error-message {
+    padding: 14px 18px;
+
+    background: #fef2f2;
+
+    border: 2px solid #ef4444;
+
+    color: #991b1b;
+
+    font-weight: 700;
+
+    border-radius: 10px;
+
+    margin-bottom: 16px;
+}
+
+
+/* Contract preview */
+.contract-preview-card {
+    margin-top: 24px;
+
+    background: #0f172a;
+
+    border-radius: 12px;
+
+    padding: 16px 20px;
+
+    color: #f8fafc;
+}
+
+
+.contract-header {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 12px;
+
+    font-size: 0.9rem;
+
+    color: #94a3b8;
+}
+
+
+.contract-tag {
+    background: #334155;
+
+    color: #38bdf8;
+
+    padding: 3px 8px;
+
+    border-radius: 6px;
+
+    font-family: monospace;
+}
+
+
+.payload-output {
+    font-family: "Courier New", Courier, monospace;
+
+    font-size: 1.05rem;
+
+    color: #38bdf8;
+
+    white-space: pre-wrap;
+}
+
+
+/* Hidden elements */
+.hidden {
+    display: none !important;
+}
+
+
+/* Mobile */
+@media (max-width: 600px) {
+
+    .task-card {
+        padding: 24px 18px;
+    }
+
+    .logo {
+        font-size: 2.3rem;
+    }
+
+    .main-prompt {
+        font-size: 1.4rem;
+    }
+
+    .controls-row {
+        grid-template-columns: 1fr;
+    }
+}
