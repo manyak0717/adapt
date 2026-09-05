@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-bg: #F7F8FC;
+  --color-primary-dark: #111827;
+  --color-primary-accent: #635BFF;
+  --color-primary-accent-hover: #5046E5;
+  --color-secondary-accent: #14B8A6;
+  --color-secondary-accent-hover: #0D9488;
+  --color-success: #16A34A;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-card: #FFFFFF;
+  --color-border: #E5E7EB;
+  --color-secondary-text: #64748B;
+}
+
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  color-scheme: light;
+  background-color: #F7F8FC;
+  color: #111827;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: #F7F8FC;
+  color: #111827;
+  overflow-x: hidden;
+}
+
+/* Accessibility focus indicator */
+*:focus-visible {
+  outline: 3px solid #635BFF;
+  outline-offset: 2px;
+}
+
+/* Subtle animations */
+@keyframes pulseSubtle {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 0.9;
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulseSubtle 2.5s ease-in-out infinite;
+}
+
+@keyframes waveBar {
+  0%, 100% {
+    height: 8px;
+  }
+  50% {
+    height: 36px;
+  }
+}
+
+.animate-wave-1 {
+  animation: waveBar 1.2s ease-in-out infinite;
+}
+.animate-wave-2 {
+  animation: waveBar 0.9s ease-in-out infinite 0.15s;
+}
+.animate-wave-3 {
+  animation: waveBar 1.4s ease-in-out infinite 0.3s;
+}
+.animate-wave-4 {
+  animation: waveBar 1.0s ease-in-out infinite 0.45s;
+}
+.animate-wave-5 {
+  animation: waveBar 1.3s ease-in-out infinite 0.2s;
+}
+
+/* Large button touch targets */
+.touch-target-large {
+  min-height: 4.5rem;
+  padding-left: 1.75rem;
+  padding-right: 1.75rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
