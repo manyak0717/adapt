@@ -16,6 +16,32 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
+class TaskCreate(BaseModel):
+    title: str
+    original_input: str | None = None
+
+
+class TaskStepCreate(BaseModel):
+    task_id: str
+    step_number: int
+    title: str
+    instruction: str
+
+
+class BehaviorEventCreate(BaseModel):
+    task_id: str | None = None
+    step_id: str | None = None
+    event_type: str
+    event_data: dict = {}
+
+
+class AssistanceStateCreate(BaseModel):
+    task_id: str | None = None
+    step_id: str | None = None
+    difficulty_score: int = 0
+    assistance_level: str = "independent"
+    difficulty_reasons: list = []
+
 
 @app.get("/")
 def root():
@@ -210,6 +236,127 @@ def get_assistance_states(
 
     except Exception as e:
         print("ASSISTANCE STATES ERROR:", repr(e))
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
+@app.post("/tasks")
+def create_task(
+    request: TaskCreate,
+    user=Depends(get_current_user),
+    client=Depends(get_authenticated_client)
+):
+    try:
+        response = (
+            client.table("tasks")
+            .insert({
+                "user_id": user.id,
+                "title": request.title,
+                "original_input": request.original_input
+            })
+            .execute()
+        )
+
+        return {
+            "task": response.data
+        }
+
+    except Exception as e:
+        print("CREATE TASK ERROR:", repr(e))
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
+
+@app.post("/task-steps")
+def create_task_step(
+    request: TaskStepCreate,
+    user=Depends(get_current_user),
+    client=Depends(get_authenticated_client)
+):
+    try:
+        response = (
+            client.table("task_steps")
+            .insert({
+                "task_id": request.task_id,
+                "step_number": request.step_number,
+                "title": request.title,
+                "instruction": request.instruction
+            })
+            .execute()
+        )
+
+        return {
+            "task_step": response.data
+        }
+
+    except Exception as e:
+        print("CREATE TASK STEP ERROR:", repr(e))
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
+
+@app.post("/behavior-events")
+def create_behavior_event(
+    request: BehaviorEventCreate,
+    user=Depends(get_current_user),
+    client=Depends(get_authenticated_client)
+):
+    try:
+        response = (
+            client.table("behavior_events")
+            .insert({
+                "user_id": user.id,
+                "task_id": request.task_id,
+                "step_id": request.step_id,
+                "event_type": request.event_type,
+                "event_data": request.event_data
+            })
+            .execute()
+        )
+
+        return {
+            "behavior_event": response.data
+        }
+
+    except Exception as e:
+        print("CREATE BEHAVIOR EVENT ERROR:", repr(e))
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
+
+@app.post("/assistance-states")
+def create_assistance_state(
+    request: AssistanceStateCreate,
+    user=Depends(get_current_user),
+    client=Depends(get_authenticated_client)
+):
+    try:
+        response = (
+            client.table("assistance_states")
+            .insert({
+                "user_id": user.id,
+                "task_id": request.task_id,
+                "step_id": request.step_id,
+                "difficulty_score": request.difficulty_score,
+                "assistance_level": request.assistance_level,
+                "difficulty_reasons": request.difficulty_reasons
+            })
+            .execute()
+        )
+
+        return {
+            "assistance_state": response.data
+        }
+
+    except Exception as e:
+        print("CREATE ASSISTANCE STATE ERROR:", repr(e))
         raise HTTPException(
             status_code=500,
             detail=str(e)
