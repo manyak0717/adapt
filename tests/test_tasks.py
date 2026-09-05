@@ -3,7 +3,7 @@ from app.extractor import extract_content
 from app.ai_step_extractor import extract_steps_with_gemini
 from app.step_extractor import extract_steps
 
-
+USE_GEMINI = False
 TASKS = [
     "how to book a flight",
     "how to book a hotel",
@@ -56,41 +56,41 @@ def test_task(task):
         # FALLBACK: Local rule-based extraction
         # -------------------------------------------------
 
-        try:
+        if USE_GEMINI:
             print("\nTrying Gemini semantic extraction...")
 
-            ai_result = extract_steps_with_gemini(
-                task,
-                source.title,
-                result.url,
-                text
-            )
+            try:
+                ai_result = extract_steps_with_gemini(
+                    task,
+                    source.title,
+                    source.url,
+                    text
+                )
 
-            steps = ai_result.get("steps", [])
+                steps = ai_result.get("steps", [])
 
-            if len(steps) >= 2:
-                print("✅ GEMINI STEPS FOUND:", len(steps))
+                if len(steps) >= 2:
+                    print(f"✅ GEMINI STEPS FOUND: {len(steps)}")
 
-                for step in steps:
-                    print(
-                        f"  {step['step_number']}. "
-                        f"{step['short_instruction']}"
-                    )
+                    for step in steps:
+                        print(
+                            f"  {step['step_number']}. "
+                            f"{step['instruction']}"
+                        )
 
-                return True
+                    return True
 
-            print("⚠️ Gemini returned insufficient steps.")
+            except Exception as e:
+                print(
+                    f"⚠️ Gemini unavailable: "
+                    f"{type(e).__name__} - {e}"
+                )
 
-        except Exception as e:
-            print(
-                "⚠️ Gemini unavailable:",
-                type(e).__name__,
-                "-",
-                str(e)
-            )
+        else:
+            print("\nGemini disabled for local testing.")
 
         # -------------------------------------------------
-        # FALLBACK: Local extractor
+        # FALLBACK: Local rule-based extractor
         # -------------------------------------------------
 
         print("\nUsing local rule-based fallback...")
@@ -98,7 +98,10 @@ def test_task(task):
         steps = extract_steps(text)
 
         if len(steps) >= 2:
-            print("✅ LOCAL FALLBACK STEPS FOUND:", len(steps))
+            print(
+                "✅ LOCAL FALLBACK STEPS FOUND:",
+                len(steps)
+            )
 
             for step in steps[:10]:
                 print(
@@ -119,9 +122,9 @@ def test_task(task):
             "-",
             str(e)
         )
+
         return False
-
-
+    
 if __name__ == "__main__":
     passed = 0
 

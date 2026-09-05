@@ -24,6 +24,21 @@ SECTION_START_PATTERNS = [
     re.compile(r"^\s*(?:###?\s*)?How\s+to\b.*$", re.IGNORECASE | re.MULTILINE),
 ]
 
+SECTION_NOISE_PATTERNS = [
+    r"^method\s+\d+\s+of\s+\d+[:.]?$",
+    r"^part\s+\d+\s+of\s+\d+[:.]?$",
+    r"^step\s+\d+\s+of\s+\d+[:.]?$",
+]
+
+NOISE_EXACT = {
+    "spread the love",
+    "download article",
+    "advertisement",
+    "explore this article",
+    "in this article",
+    "things you should know",
+}
+
 # Regular expressions for identifying sections where procedure ends
 SECTION_END_PATTERNS = [
     re.compile(
@@ -247,6 +262,22 @@ class StepExtractor:
 
             # Remove citations like [1], [2], [X]
             line_str = re.sub(r"\[(?:\d+|X)\]", "", line_str).strip()
+
+            if re.match(
+                r"(?:method|part|step)\s+\d+\s+of\s+\d+[:.]?$", line_str, re.IGNORECASE
+            ):
+                continue
+
+            if line_str.lower() in {
+                "spread the love",
+                "download article",
+                "advertisement",
+                "explore this article",
+                "in this article",
+                "things you should know",
+            }:
+                continue
+            
 
             # Discard boilerplate lines
             if any(pat.match(line_str) for pat in BOILERPLATE_LINE_PATTERNS):
