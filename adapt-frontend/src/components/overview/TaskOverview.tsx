@@ -14,11 +14,11 @@ export const TaskOverview: React.FC = () => {
     }
 
     const taskTitle = currentTask?.normalized_task || currentTask?.original_input || "your task";
-    const stepsSummary = steps
-      .map((s, idx) => `Step ${idx + 1}, ${s.short_instruction || s.instruction}.`)
-      .join(" ");
+    const summaryText = currentTask?.overview_stages
+      ? currentTask.overview_stages.map((s, idx) => `Stage ${idx + 1}: ${s}.`).join(" ")
+      : steps.map((s, idx) => `Step ${idx + 1}, ${s.short_instruction || s.instruction}.`).join(" ");
 
-    const textToNarrate = `Here is your overview for ${taskTitle}. We will do this together, one step at a time. There are ${steps.length} steps. ${stepsSummary} When you are ready, press Start.`;
+    const textToNarrate = `Here is your overview for ${taskTitle}. We will do this together, one step at a time. There are ${steps.length} detailed steps. ${summaryText} When you are ready, press Start.`;
 
     speak(textToNarrate);
   };
@@ -44,31 +44,61 @@ export const TaskOverview: React.FC = () => {
       {/* Vertical timeline card layout */}
       <section className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E5E7EB] shadow-xs mb-8">
         <div className="space-y-4">
-          {steps.map((step, idx) => {
-            const stepFormattedNumber = String(idx + 1).padStart(2, "0");
-            return (
-              <div
-                key={step.step_id}
-                className="flex items-center gap-4 p-4 rounded-2xl bg-[#F7F8FC] border border-[#E5E7EB]/80 hover:border-[#635BFF]/30 transition-colors"
-              >
-                {/* Step number badge */}
-                <span className="w-10 h-10 rounded-xl bg-white border border-[#E5E7EB] text-[#635BFF] font-bold text-sm flex items-center justify-center shrink-0 shadow-2xs">
-                  {stepFormattedNumber}
-                </span>
+          {currentTask?.overview_stages && currentTask.overview_stages.length > 0
+            ? currentTask.overview_stages.map((stage, idx) => {
+                const stepFormattedNumber = String(idx + 1).padStart(2, "0");
+                return (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-[#F7F8FC] border border-[#E5E7EB]/80 hover:border-[#635BFF]/30 transition-colors"
+                  >
+                    <span className="w-10 h-10 rounded-xl bg-white border border-[#E5E7EB] text-[#635BFF] font-bold text-sm flex items-center justify-center shrink-0 shadow-2xs">
+                      {stepFormattedNumber}
+                    </span>
 
-                {/* Step details */}
-                <div className="flex-1 min-w-0">
-                  <h2 className="font-semibold text-[#111827] text-base leading-snug">
-                    {step.short_instruction || step.instruction}
-                  </h2>
-                  <p className="text-xs text-[#64748B] mt-0.5 capitalize">
-                    Action: {step.action_type}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
+                    <div className="flex-1 min-w-0">
+                      <h2 className="font-semibold text-[#111827] text-base leading-snug">
+                        {stage}
+                      </h2>
+                      <p className="text-xs text-[#64748B] mt-0.5">
+                        Stage {idx + 1} of {currentTask.overview_stages?.length ?? 0}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            : steps.map((step, idx) => {
+                const stepFormattedNumber = String(idx + 1).padStart(2, "0");
+                return (
+                  <div
+                    key={step.step_id}
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-[#F7F8FC] border border-[#E5E7EB]/80 hover:border-[#635BFF]/30 transition-colors"
+                  >
+                    <span className="w-10 h-10 rounded-xl bg-white border border-[#E5E7EB] text-[#635BFF] font-bold text-sm flex items-center justify-center shrink-0 shadow-2xs">
+                      {stepFormattedNumber}
+                    </span>
+
+                    <div className="flex-1 min-w-0">
+                      <h2 className="font-semibold text-[#111827] text-base leading-snug">
+                        {step.short_instruction || step.instruction}
+                      </h2>
+                      <p className="text-xs text-[#64748B] mt-0.5 capitalize">
+                        Action: {step.action_type}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
         </div>
+
+        {currentTask?.overview_stages && (
+          <div className="mt-5 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-[#64748B]">
+            <span>Detailed action breakdown</span>
+            <span className="font-bold text-[#635BFF] bg-[#635BFF]/10 px-2.5 py-1 rounded-full">
+              {steps.length} micro-steps prepared
+            </span>
+          </div>
+        )}
       </section>
 
       {/* Control Buttons */}

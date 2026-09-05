@@ -234,7 +234,19 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
           </div>
         </div>
 
-        {/* Quick select pills if provided */}
+        {/* Quick select pills or default value fill if provided */}
+        {step.action_data?.defaultValue && !typedValue && (
+          <div>
+            <button
+              type="button"
+              onClick={() => onTypeChange(step.action_data?.defaultValue || "")}
+              className="py-2.5 px-4 rounded-xl bg-[#635BFF]/10 text-[#635BFF] hover:bg-[#635BFF]/15 font-semibold text-xs transition-colors cursor-pointer"
+            >
+              Use: "{step.action_data.defaultValue}"
+            </button>
+          </div>
+        )}
+
         {choices && choices.length > 0 && (
           <div>
             <p className="text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-2">

@@ -57,7 +57,7 @@ export const StepScreen: React.FC = () => {
     : currentStep.instruction;
 
   const displayedSubtitle = isSimplified
-    ? "Take your time and pick your choice below."
+    ? "Tap one of the available options below."
     : currentStep.short_instruction;
 
   // Handlers

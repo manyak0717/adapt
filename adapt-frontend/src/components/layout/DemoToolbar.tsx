@@ -23,10 +23,14 @@ export const DemoToolbar: React.FC = () => {
         {/* Header row */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <span className="p-1 rounded-lg bg-[#635BFF]/10 text-[#635BFF]">
+            <span className="p-1 rounded-lg bg-amber-500/10 text-amber-600">
               <Activity className="w-3.5 h-3.5" />
             </span>
-            <span className="font-semibold text-xs text-[#111827]">Demo Mode</span>
+            <div>
+              <span className="font-bold text-[11px] uppercase tracking-wider text-amber-700 bg-amber-100/70 px-1.5 py-0.5 rounded">
+                Dev / Demo
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">

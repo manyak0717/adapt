@@ -21,29 +21,43 @@ export function useInteractionTracker({
   const [retryCount, setRetryCount] = useState(0);
   const [activeInputMode, setActiveInputMode] = useState<"voice" | "keyboard" | "text">(inputMode);
 
+  // Track step identifier to avoid resetting timers during parent or local re-renders
+  const stepKey = `${taskId}__${stepId}`;
+  const prevStepKeyRef = useRef<string>("");
+
   const shownTimestampRef = useRef<number>(Date.now());
   const shownAtRef = useRef<string>(new Date().toISOString());
   const ackTimestampRef = useRef<number | null>(null);
   const ackAtRef = useRef<string>("");
 
-  // Reset timers whenever stepId changes
+  // Only reset timing state when the stepId or taskId actually transitions
   useEffect(() => {
-    shownTimestampRef.current = Date.now();
-    shownAtRef.current = new Date().toISOString();
-    ackTimestampRef.current = null;
-    ackAtRef.current = "";
-    setIsAcknowledged(false);
-    setAudioUsed(false);
-    setHelpRequested(false);
-    setErrorCount(0);
-    setRetryCount(0);
-  }, [stepId, taskId]);
+    if (prevStepKeyRef.current !== stepKey) {
+      prevStepKeyRef.current = stepKey;
+      shownTimestampRef.current = Date.now();
+      shownAtRef.current = new Date().toISOString();
+      ackTimestampRef.current = null;
+      ackAtRef.current = "";
+      setIsAcknowledged(false);
+      setAudioUsed(false);
+      setHelpRequested(false);
+      setErrorCount(0);
+      setRetryCount(0);
+    }
+  }, [stepKey]);
+
+  // Keep input mode in sync if prop changes
+  useEffect(() => {
+    setActiveInputMode(inputMode);
+  }, [inputMode]);
 
   // Record acknowledgement when user clicks "I UNDERSTAND"
+  // Stops acknowledgement timing and marks beginning of execution timing
   const acknowledge = useCallback(() => {
     if (!ackTimestampRef.current) {
-      ackTimestampRef.current = Date.now();
-      ackAtRef.current = new Date().toISOString();
+      const now = Date.now();
+      ackTimestampRef.current = now;
+      ackAtRef.current = new Date(now).toISOString();
       setIsAcknowledged(true);
     }
   }, []);
@@ -64,19 +78,35 @@ export function useInteractionTracker({
     setHelpRequested(true);
   }, []);
 
-  // Complete and compile interaction contract object
+  // Finalize interaction telemetry contract
+  // Calculates acknowledgement_time and execution_time reliably
   const finalizeInteraction = useCallback((): Interaction => {
     const completedTimestamp = Date.now();
     const completedAt = new Date().toISOString();
 
-    const ackTimeSeconds = ackTimestampRef.current
-      ? Math.max(1, Math.round((ackTimestampRef.current - shownTimestampRef.current) / 1000))
-      : Math.max(1, Math.round((completedTimestamp - shownTimestampRef.current) / 2000));
+    let ackTimeSeconds: number;
+    let execTimeSeconds: number;
 
-    const execTimeSeconds = Math.max(
-      1,
-      Math.round((completedTimestamp - shownTimestampRef.current) / 1000)
-    );
+    if (ackTimestampRef.current) {
+      // 1. Acknowledgement timing: from step appearance until "I Understand"
+      ackTimeSeconds = Math.max(
+        1,
+        Math.round((ackTimestampRef.current - shownTimestampRef.current) / 1000)
+      );
+      // 2. Execution timing: after acknowledgement until Next is pressed
+      execTimeSeconds = Math.max(
+        1,
+        Math.round((completedTimestamp - ackTimestampRef.current) / 1000)
+      );
+    } else {
+      // If user pressed Next directly without explicit "I Understand"
+      const totalElapsed = Math.max(
+        1,
+        Math.round((completedTimestamp - shownTimestampRef.current) / 1000)
+      );
+      ackTimeSeconds = Math.max(1, Math.round(totalElapsed / 2));
+      execTimeSeconds = Math.max(1, totalElapsed - ackTimeSeconds);
+    }
 
     const interactionPayload: Interaction = {
       interaction_id: `INT_${Date.now()}_${Math.floor(Math.random() * 1000)}`,

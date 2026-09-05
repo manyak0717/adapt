@@ -146,8 +146,23 @@ export const AdaptProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const toggleSimulateDifficulty = useCallback(() => {
-    setSimulateDifficulty((prev) => !prev);
-  }, []);
+    setSimulateDifficulty((prev) => {
+      const nextVal = !prev;
+      if (screen === "step" && currentStep) {
+        api
+          .getAdaptation(
+            currentTask?.task_id || "TASK_001",
+            currentStep.step_id,
+            interactionHistory[interactionHistory.length - 1] || null,
+            nextVal
+          )
+          .then((adapt) => {
+            setCurrentAdaptation(adapt);
+          });
+      }
+      return nextVal;
+    });
+  }, [screen, currentStep, currentTask, interactionHistory]);
 
   // Compute aggregated stats for completion summary
   const taskSummaryStats = {

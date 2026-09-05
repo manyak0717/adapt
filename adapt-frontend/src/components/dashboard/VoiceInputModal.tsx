@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Mic, MicOff, Check, X, RotateCcw, Volume2 } from "lucide-react";
+import { Mic, MicOff, Check, X, RotateCcw, Volume2, AlertCircle } from "lucide-react";
 import { useVoiceRecognition } from "../../hooks/useVoiceRecognition";
 
 interface VoiceInputModalProps {
@@ -15,57 +15,59 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
   onSubmit,
   initialPromptSuggestion = "I want to book a doctor's appointment",
 }) => {
-  const [confirmedText, setConfirmedText] = useState("");
+  const [capturedText, setCapturedText] = useState("");
 
   const {
     isListening,
     transcript,
+    errorType,
+    errorMessage,
     startListening,
     stopListening,
     resetTranscript,
-    setTranscript,
+    simulateSpeech,
   } = useVoiceRecognition({
     mockFallbackPhrase: initialPromptSuggestion,
     onResult: (finalText) => {
-      setConfirmedText(finalText);
+      setCapturedText(finalText);
     },
   });
 
+  // Start listening when opened, stop when closed
   useEffect(() => {
     if (isOpen) {
-      setConfirmedText("");
+      setCapturedText("");
       resetTranscript();
       startListening();
     } else {
       stopListening();
     }
-  }, [isOpen, startListening, stopListening, resetTranscript]);
+  }, [isOpen]);
 
-  // Keep confirmed text synced with live transcript if available
+  // Keep capturedText in sync with interim transcript while speaking
   useEffect(() => {
     if (transcript) {
-      setConfirmedText(transcript);
+      setCapturedText(transcript);
     }
   }, [transcript]);
 
   if (!isOpen) return null;
 
   const handleUseThis = () => {
-    const textToSubmit = confirmedText.trim() || initialPromptSuggestion;
+    const textToSubmit = capturedText.trim() || initialPromptSuggestion;
+    stopListening();
     onSubmit(textToSubmit);
     onClose();
   };
 
   const handleTryAgain = () => {
-    setConfirmedText("");
+    setCapturedText("");
     resetTranscript();
     startListening();
   };
 
-  const handleSelectQuickPrompt = (phrase: string) => {
-    stopListening();
-    setConfirmedText(phrase);
-    setTranscript(phrase);
+  const handleSimulateDemoSpeech = (phrase: string) => {
+    simulateSpeech(phrase);
   };
 
   return (
@@ -78,8 +80,11 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
       <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-[#E5E7EB] text-center relative overflow-hidden">
         {/* Close icon */}
         <button
-          onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-xl text-[#64748B] hover:text-[#111827] hover:bg-[#F7F8FC] transition-colors"
+          onClick={() => {
+            stopListening();
+            onClose();
+          }}
+          className="absolute top-5 right-5 p-2 rounded-xl text-[#64748B] hover:text-[#111827] hover:bg-[#F7F8FC] transition-colors cursor-pointer"
           aria-label="Close voice input"
         >
           <X className="w-5 h-5" />
@@ -88,30 +93,48 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
         {/* Listening indicator */}
         <div className="mt-2 mb-6">
           <div className="relative inline-flex items-center justify-center">
-            <div
-              className={`w-24 h-24 rounded-full flex items-center justify-center transition-all ${
+            <button
+              type="button"
+              onClick={isListening ? stopListening : startListening}
+              className={`w-24 h-24 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                 isListening
                   ? "bg-gradient-to-tr from-[#635BFF] to-[#14B8A6] text-white shadow-lg shadow-[#635BFF]/30 scale-105"
+                  : errorType
+                  ? "bg-amber-50 border-2 border-amber-300 text-amber-600"
                   : "bg-[#F7F8FC] border-2 border-[#E5E7EB] text-[#635BFF]"
               }`}
+              title={isListening ? "Click to stop listening" : "Click to start listening"}
+              aria-label={isListening ? "Click to stop listening" : "Click to start listening"}
             >
               <Mic className={`w-10 h-10 ${isListening ? "animate-pulse" : ""}`} />
-            </div>
+            </button>
             {isListening && (
-              <span className="absolute -inset-2 rounded-full border-2 border-[#635BFF]/30 animate-ping" />
+              <span className="absolute -inset-2 rounded-full border-2 border-[#635BFF]/30 animate-ping pointer-events-none" />
             )}
           </div>
 
           <h3 className="text-2xl font-bold text-[#111827] mt-5 mb-1">
-            {isListening ? "Listening..." : "Voice captured"}
+            {isListening
+              ? "Listening..."
+              : errorType
+              ? "Voice notice"
+              : capturedText
+              ? "Voice captured"
+              : "Microphone ready"}
           </h3>
           <p className="text-sm text-[#64748B]">
-            {isListening ? "Tell me what you'd like to do." : "Check what we heard below."}
+            {isListening
+              ? "Tell me what you'd like to do."
+              : errorType
+              ? "You can try again or use text input below."
+              : capturedText
+              ? "Check what we heard below."
+              : "Click the microphone to speak."}
           </p>
 
           {/* Animated Waveform */}
           {isListening && (
-            <div className="flex items-center justify-center gap-1.5 h-12 mt-4" aria-hidden="true">
+            <div className="flex items-center justify-center gap-1.5 h-10 mt-3" aria-hidden="true">
               <span className="w-1.5 bg-[#635BFF] rounded-full animate-wave-1"></span>
               <span className="w-1.5 bg-[#14B8A6] rounded-full animate-wave-2"></span>
               <span className="w-1.5 bg-[#635BFF] rounded-full animate-wave-3"></span>
@@ -123,14 +146,22 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
           )}
         </div>
 
+        {/* Error notification banner if applicable */}
+        {errorType && errorMessage && (
+          <div className="mb-5 p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-sm flex items-start gap-2.5 text-left">
+            <AlertCircle className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
+            <p className="leading-snug">{errorMessage}</p>
+          </div>
+        )}
+
         {/* Live / Confirmed Transcription Card */}
-        <div className="bg-[#F7F8FC] rounded-2xl p-5 border border-[#E5E7EB] mb-6 min-h-[5rem] flex items-center justify-center text-center">
+        <div className="bg-[#F7F8FC] rounded-2xl p-5 border border-[#E5E7EB] mb-5 min-h-[5rem] flex items-center justify-center text-center">
           <p className="text-lg font-medium text-[#111827] italic">
-            "{confirmedText || transcript || "Speak now or choose a suggestion below..."}"
+            "{capturedText || (isListening ? "Listening to your voice..." : "Click microphone or choose a demo suggestion...")}"
           </p>
         </div>
 
-        {/* Quick voice simulation suggestions (accessible for quiet environments or hackathon demo) */}
+        {/* Quick speech simulation suggestions (ideal for noisy hackathon venues or blocked permissions) */}
         <div className="mb-6 text-left">
           <p className="text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <Volume2 className="w-3.5 h-3.5 text-[#635BFF]" /> Demo speech presets:
@@ -138,13 +169,13 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
           <div className="flex flex-wrap gap-2">
             {[
               "I want to book a doctor's appointment",
-              "Book a bus ticket",
-              "Make a bank transfer",
+              "Book a train ticket",
+              "Pay my electricity bill",
             ].map((phrase) => (
               <button
                 key={phrase}
                 type="button"
-                onClick={() => handleSelectQuickPrompt(phrase)}
+                onClick={() => handleSimulateDemoSpeech(phrase)}
                 className="text-xs py-1.5 px-3 rounded-lg bg-white border border-[#E5E7EB] text-[#111827] hover:border-[#635BFF] hover:bg-[#635BFF]/5 transition-colors cursor-pointer"
               >
                 "{phrase}"
@@ -158,6 +189,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
           {isListening ? (
             <>
               <button
+                type="button"
                 onClick={stopListening}
                 className="flex-1 py-3.5 px-5 rounded-2xl border border-[#E5E7EB] text-[#111827] font-semibold hover:bg-[#F7F8FC] flex items-center justify-center gap-2 cursor-pointer"
               >
@@ -165,7 +197,11 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
                 <span>Stop</span>
               </button>
               <button
-                onClick={onClose}
+                type="button"
+                onClick={() => {
+                  stopListening();
+                  onClose();
+                }}
                 className="flex-1 py-3.5 px-5 rounded-2xl border border-[#E5E7EB] text-[#64748B] font-medium hover:bg-[#F7F8FC] cursor-pointer"
               >
                 Cancel
@@ -174,6 +210,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
           ) : (
             <>
               <button
+                type="button"
                 onClick={handleTryAgain}
                 className="py-3.5 px-5 rounded-2xl border border-[#E5E7EB] text-[#111827] font-semibold hover:bg-[#F7F8FC] flex items-center justify-center gap-2 cursor-pointer"
               >
@@ -181,8 +218,14 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
                 <span>Try again</span>
               </button>
               <button
+                type="button"
                 onClick={handleUseThis}
-                className="flex-1 py-3.5 px-6 rounded-2xl bg-[#635BFF] hover:bg-[#5046E5] text-white font-semibold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all cursor-pointer"
+                disabled={!capturedText.trim()}
+                className={`flex-1 py-3.5 px-6 rounded-2xl font-semibold flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer ${
+                  capturedText.trim()
+                    ? "bg-[#635BFF] hover:bg-[#5046E5] text-white hover:shadow-lg"
+                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                }`}
               >
                 <Check className="w-5 h-5" />
                 <span>Use this</span>

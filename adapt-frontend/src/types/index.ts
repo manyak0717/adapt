@@ -30,6 +30,7 @@ export interface Task {
   status: "retrieving" | "processing" | "active" | "completed" | "failed";
   created_at: string;
   completed_at: string;
+  overview_stages?: string[];
 }
 
 export type ActionType =

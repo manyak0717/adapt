@@ -1,7 +1,7 @@
 import type { UserProfile, Task, Step, Interaction, Adaptation } from "../types";
 import { MOCK_USER_PROFILE, PRESET_TASKS, generateGenericSteps } from "./mockData";
 
-// In-memory or session storage state to mock backend persistence
+// In-memory state to mock backend persistence
 let currentProfile: UserProfile = { ...MOCK_USER_PROFILE };
 const activeTasks = new Map<string, { task: Task; steps: Step[] }>();
 const recordedInteractions: Interaction[] = [];
@@ -18,41 +18,71 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Creates a new task based on user input string and mode.
- * Matches preset tasks if keywords match, otherwise dynamically generates 4-5 steps.
+ * Matches curated internal procedures or dynamically generates structured steps.
  * Endpoint: POST /tasks
  */
 export async function createTask(
   input: string,
   inputMode: "voice" | "keyboard" | "text" = "text"
 ): Promise<Task> {
-  await delay(600);
+  await delay(500);
   const normalized = input.trim().toLowerCase();
 
   let matched: { task: Task; steps: Step[] } | null = null;
 
-  if (normalized.includes("doctor") || normalized.includes("appointment") || normalized.includes("clinic") || normalized.includes("hospital")) {
+  if (
+    normalized.includes("doctor") ||
+    normalized.includes("appointment") ||
+    normalized.includes("clinic") ||
+    normalized.includes("hospital") ||
+    normalized.includes("physician")
+  ) {
     matched = JSON.parse(JSON.stringify(PRESET_TASKS.doctor));
-  } else if (normalized.includes("bus") || normalized.includes("travel") || normalized.includes("ticket") || normalized.includes("transit")) {
-    matched = JSON.parse(JSON.stringify(PRESET_TASKS.bus));
-  } else if (normalized.includes("bank") || normalized.includes("transfer") || normalized.includes("money") || normalized.includes("pay")) {
+  } else if (
+    normalized.includes("train") ||
+    normalized.includes("bus") ||
+    normalized.includes("transit") ||
+    normalized.includes("ticket") ||
+    normalized.includes("subway") ||
+    normalized.includes("rail")
+  ) {
+    matched = JSON.parse(JSON.stringify(PRESET_TASKS.train));
+  } else if (
+    normalized.includes("transfer") ||
+    normalized.includes("money") ||
+    normalized.includes("bank") ||
+    normalized.includes("wire") ||
+    normalized.includes("remit") ||
+    normalized.includes("send money")
+  ) {
     matched = JSON.parse(JSON.stringify(PRESET_TASKS.transfer));
+  } else if (
+    normalized.includes("coffee") ||
+    normalized.includes("brew") ||
+    normalized.includes("espresso") ||
+    normalized.includes("cappuccino") ||
+    normalized.includes("latte")
+  ) {
+    matched = JSON.parse(JSON.stringify(PRESET_TASKS.coffee));
   } else {
-    // Dynamically generate steps for any custom user input!
+    // Dynamic procedure generator for any custom goal
     matched = generateGenericSteps(input.trim());
   }
 
   if (matched) {
-    matched.task.task_id = `TASK_${Date.now()}`;
+    const taskId = `TASK_${Date.now()}`;
+    matched.task.task_id = taskId;
     matched.task.original_input = input;
     matched.task.input_mode = inputMode;
     matched.task.created_at = new Date().toISOString();
+
     // Update step references to matched task
     matched.steps.forEach((s, idx) => {
-      s.task_id = matched!.task.task_id;
-      s.step_id = `${matched!.task.task_id}_STEP_${idx + 1}`;
+      s.task_id = taskId;
+      s.step_id = `${taskId}_STEP_${idx + 1}`;
     });
 
-    activeTasks.set(matched.task.task_id, matched);
+    activeTasks.set(taskId, matched);
     return matched.task;
   }
 
@@ -64,10 +94,9 @@ export async function createTask(
  * Endpoint: GET /tasks/{task_id}/steps
  */
 export async function getTaskSteps(taskId: string): Promise<Step[]> {
-  await delay(400);
+  await delay(350);
   const taskEntry = activeTasks.get(taskId);
   if (!taskEntry) {
-    // If not found in memory, fallback to doctor preset
     return PRESET_TASKS.doctor.steps;
   }
   return taskEntry.steps;
@@ -80,7 +109,7 @@ export async function getTaskSteps(taskId: string): Promise<Step[]> {
 export async function recordInteraction(
   interaction: Interaction
 ): Promise<{ success: boolean; recorded_id: string }> {
-  await delay(250);
+  await delay(200);
   recordedInteractions.push(interaction);
 
   // Update profile behavioural metrics incrementally
@@ -98,8 +127,8 @@ export async function recordInteraction(
 }
 
 /**
- * Computes or fetches adaptation settings based on user interaction behavior.
- * Respectful, purely behavioural evaluation.
+ * Evaluates behavioral difficulty signals and computes dynamic UI adaptation.
+ * Purely behavioural observation without medical labels.
  * Endpoint: GET /adaptation or POST /adaptation/evaluate
  */
 export async function getAdaptation(
@@ -108,49 +137,69 @@ export async function getAdaptation(
   interaction?: Interaction | null,
   forceDifficulty: boolean = false
 ): Promise<Adaptation> {
-  await delay(300);
+  await delay(250);
 
-  // Determine if adaptation is warranted based on interaction observations or forced demo toggle
-  const shouldAdapt =
-    forceDifficulty ||
-    (interaction &&
-      (interaction.acknowledgement_time > 8 ||
-        interaction.execution_time > 18 ||
-        interaction.error_count > 0 ||
-        interaction.retry_count > 0 ||
-        interaction.help_requested));
+  // Difficulty signal detection
+  const isAckHigh = interaction ? interaction.acknowledgement_time > 6 : false;
+  const isExecHigh = interaction ? interaction.execution_time > 12 : false;
+  const hasErrors = interaction ? interaction.error_count > 0 : false;
+  const hasRetries = interaction ? interaction.retry_count > 0 : false;
+  const helpRequested = interaction ? interaction.help_requested : false;
+
+  const difficultyScore =
+    (isAckHigh ? 1 : 0) +
+    (isExecHigh ? 1 : 0) +
+    (hasErrors ? 2 : 0) +
+    (hasRetries ? 1 : 0) +
+    (helpRequested ? 2 : 0);
+
+  const shouldAdapt = forceDifficulty || difficultyScore >= 1;
 
   if (shouldAdapt) {
     const reasons: string[] = [];
+
     if (forceDifficulty) {
-      reasons.push("Demonstration mode: high cognitive assistance active");
+      reasons.push("Demonstration mode: high assistance active");
     }
-    if (interaction?.acknowledgement_time && interaction.acknowledgement_time > 8) {
-      reasons.push("Extended reading duration detected");
+    if (isAckHigh) {
+      reasons.push("Extended reading duration observed");
     }
-    if (interaction?.execution_time && interaction.execution_time > 18) {
-      reasons.push("Extended action completion time detected");
+    if (isExecHigh) {
+      reasons.push("Extended action completion time observed");
     }
-    if (interaction?.error_count && interaction.error_count > 0) {
-      reasons.push("Target selection re-attempts observed");
+    if (hasErrors) {
+      reasons.push("Multiple selection attempts observed");
     }
-    if (interaction?.help_requested) {
-      reasons.push("Direct assistance requested on preceding step");
+    if (hasRetries) {
+      reasons.push("Choice re-selections observed");
+    }
+    if (helpRequested) {
+      reasons.push("Direct assistance requested on previous step");
     }
     if (reasons.length === 0) {
       reasons.push("Simplified navigation pacing applied");
     }
 
+    // Granular adaptation rules
+    const instructionMode =
+      isAckHigh || hasRetries || forceDifficulty ? "simplified" : "normal";
+    const textSize = hasErrors || forceDifficulty || difficultyScore >= 2 ? "large" : "normal";
+    const buttonSize =
+      hasErrors || hasRetries || forceDifficulty || difficultyScore >= 1 ? "large" : "normal";
+    const audioPriority = helpRequested || forceDifficulty || isAckHigh;
+    const showExtraExplanation = isExecHigh || helpRequested || forceDifficulty;
+    const requireConfirmation = hasErrors || difficultyScore >= 2 || forceDifficulty;
+
     return {
       user_id: currentProfile.user_id,
       task_id: taskId,
       step_id: stepId,
-      instruction_mode: "simplified",
-      text_size: "large",
-      button_size: "large",
-      audio_priority: true,
-      show_extra_explanation: true,
-      require_confirmation: true,
+      instruction_mode: instructionMode,
+      text_size: textSize,
+      button_size: buttonSize,
+      audio_priority: audioPriority,
+      show_extra_explanation: showExtraExplanation,
+      require_confirmation: requireConfirmation,
       reason: reasons,
     };
   }
@@ -175,7 +224,7 @@ export async function getAdaptation(
  * Endpoint: GET /users/{user_id}/profile
  */
 export async function getUserProfile(userId: string = "USER_1027"): Promise<UserProfile> {
-  await delay(300);
+  await delay(200);
   if (userId === currentProfile.user_id) {
     return { ...currentProfile };
   }
@@ -187,7 +236,7 @@ export async function getUserProfile(userId: string = "USER_1027"): Promise<User
  * Endpoint: PUT /users/{user_id}/profile
  */
 export async function updateUserProfile(updated: UserProfile): Promise<UserProfile> {
-  await delay(300);
+  await delay(200);
   currentProfile = { ...updated };
   return { ...currentProfile };
 }

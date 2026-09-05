@@ -23,7 +23,6 @@ export const TaskInput: React.FC<TaskInputProps> = ({ onSubmit, isLoading = fals
 
   const handleVoiceSubmit = (text: string) => {
     setValue(text);
-    onSubmit(text, "voice");
   };
 
   const handleChar = (char: string) => {
@@ -75,10 +74,15 @@ export const TaskInput: React.FC<TaskInputProps> = ({ onSubmit, isLoading = fals
             {/* Voice input button */}
             <button
               type="button"
-              onClick={() => setIsVoiceOpen(true)}
-              className="p-3 rounded-2xl bg-[#635BFF]/10 text-[#635BFF] hover:bg-[#635BFF]/20 transition-colors cursor-pointer"
-              title="Speak your goal"
-              aria-label="Speak your goal"
+              onClick={() => setIsVoiceOpen((prev) => !prev)}
+              className={`p-3 rounded-2xl transition-colors cursor-pointer ${
+                isVoiceOpen
+                  ? "bg-[#635BFF] text-white shadow-sm"
+                  : "bg-[#635BFF]/10 text-[#635BFF] hover:bg-[#635BFF]/20"
+              }`}
+              title={isVoiceOpen ? "Stop listening" : "Speak your goal"}
+              aria-label={isVoiceOpen ? "Stop listening" : "Speak your goal"}
+              aria-pressed={isVoiceOpen}
             >
               <Mic className="w-5 h-5" />
             </button>
