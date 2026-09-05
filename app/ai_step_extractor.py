@@ -57,6 +57,17 @@ Rules:
 
 def extract_steps_with_gemini(task, title, url, webpage_text):
 
+    MAX_CONTENT_CHARS = 15000
+
+    if len(webpage_text) > MAX_CONTENT_CHARS:
+        # Keep both beginning and end of the page
+        half = MAX_CONTENT_CHARS // 2
+        webpage_text = (
+            webpage_text[:half]
+            + "\n\n[...CONTENT TRUNCATED...]\n\n"
+            + webpage_text[-half:]
+        )
+
     prompt = f"""
 USER TASK:
 {task}

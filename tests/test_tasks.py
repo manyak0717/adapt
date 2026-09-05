@@ -41,46 +41,84 @@ def test_task(task):
 
         print("Search results:", len(results))
 
-        success = False
+        # Select the highest-ranked webpage
+        result = results[0]
 
-        for result in results:
-            try:
-                print("\nTrying:", result.title)
-                print("URL:", result.url)
+        print("\nSelected:", result.title)
+        print("URL:", result.url)
 
-                source, text = extract_content(result.url)
+        source, text = extract_content(result.url)
 
-                ai_result = extract_steps_with_gemini(
-                    task,
-                    source.title,
-                    result.url,
-                    text
+        print("Content extracted:", len(text), "characters")
+
+        # -------------------------------------------------
+        # PRIMARY: Gemini semantic extraction
+        # FALLBACK: Local rule-based extraction
+        # -------------------------------------------------
+
+        try:
+            print("\nTrying Gemini semantic extraction...")
+
+            ai_result = extract_steps_with_gemini(
+                task,
+                source.title,
+                result.url,
+                text
+            )
+
+            steps = ai_result.get("steps", [])
+
+            if len(steps) >= 2:
+                print("✅ GEMINI STEPS FOUND:", len(steps))
+
+                for step in steps:
+                    print(
+                        f"  {step['step_number']}. "
+                        f"{step['short_instruction']}"
+                    )
+
+                return True
+
+            print("⚠️ Gemini returned insufficient steps.")
+
+        except Exception as e:
+            print(
+                "⚠️ Gemini unavailable:",
+                type(e).__name__,
+                "-",
+                str(e)
+            )
+
+        # -------------------------------------------------
+        # FALLBACK: Local extractor
+        # -------------------------------------------------
+
+        print("\nUsing local rule-based fallback...")
+
+        steps = extract_steps(text)
+
+        if len(steps) >= 2:
+            print("✅ LOCAL FALLBACK STEPS FOUND:", len(steps))
+
+            for step in steps[:10]:
+                print(
+                    f"  {step.step_number}. "
+                    f"{step.short_instruction}"
                 )
 
-                steps = ai_result.get("steps", [])
+            return True
 
-                if len(steps) >= 2:
-                    print("✅ STEPS FOUND:", len(steps))
+        print("❌ No usable procedure found.")
 
-                    for step in steps[:5]:
-                        print(
-                            f"  {step['step_number']}. "
-                            f"{step['short_instruction']}"
-                        )
-
-                    success = True
-                    break
-
-            except Exception as e:
-                print("⚠️ Failed:", type(e).__name__)
-
-        if not success:
-            print("❌ NO USABLE PROCEDURE FOUND")
-
-        return success
+        return False
 
     except Exception as e:
-        print("❌ TASK FAILED:", type(e).__name__, e)
+        print(
+            "❌ TASK FAILED:",
+            type(e).__name__,
+            "-",
+            str(e)
+        )
         return False
 
 
@@ -90,6 +128,7 @@ if __name__ == "__main__":
     for task in TASKS:
         if test_task(task):
             passed += 1
+    # test_task("how to create a Gmail account")
 
     print("\n" + "=" * 70)
     print(f"FINAL RESULT: {passed}/{len(TASKS)} tasks produced usable steps")
