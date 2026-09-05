@@ -1,0 +1,19 @@
+# Core schema validation and typing
+pydantic>=2.0.0
+
+# HTTP client with timeout & error handling
+httpx>=0.25.0
+
+# HTML parsing and clean article text extraction
+beautifulsoup4>=4.12.0
+trafilatura>=1.6.0
+lxml>=4.9.0
+
+# Zero-credential web search engine
+ddgs>=6.0.0
+
+# Environment variable loading
+python-dotenv>=1.0.0
+
+# Testing framework
+pytest>=7.4.0
